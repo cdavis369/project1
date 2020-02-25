@@ -1,0 +1,214 @@
+import java.util.ArrayList;
+
+class BinarySearchTree {
+  TreeNode root;
+
+  BinarySearchTree() {
+    this.root = null;
+  }
+
+  //=============================================================== INSERT
+
+  public void insert(char method, int data) {
+    if (method == 'r') 
+      root = insertRec(root, data);
+    else
+      insertIter(data);
+  }
+
+  private TreeNode insertRec(TreeNode current, int data) {
+    TreeNode temp;
+    if (current == null){
+      current = new TreeNode(data);
+      return current;
+    }
+    else if (current.data < data) {
+      temp = insertRec(current.right, data);
+      current.right = temp;
+      temp.parent = current;
+    }
+    else{
+      temp = insertRec(current.left, data);
+      current.left = temp;
+      temp.parent = current;
+    }
+    return current;
+  }
+
+  private void insertIter(int data) {
+    TreeNode newNode = new TreeNode(data);
+    if (root == null) {
+      root = newNode;
+      return;
+    }
+    TreeNode current = root;
+    TreeNode parent = null;
+    while (true) {
+      parent = current;
+      if (current.data < data) {
+        current = current.right;
+        if (current == null) {
+          newNode.parent = parent;
+          parent.right = newNode;
+          return;
+        }
+      }
+      else {
+        current = current.left;
+        if (current == null) {
+          newNode.parent = parent;
+          parent.left = newNode;
+          return;
+        }
+      }
+    }
+  }
+
+  //=============================================================== DELETE
+
+  public void delete(char method, int data) {
+    if (method == 'r') 
+      root = deleteRec(root, data);
+    else
+     deleteIter(root,data);
+  }
+
+  private TreeNode deleteRec(TreeNode current, int data){
+    return current;
+  }
+
+  private void deleteIter(TreeNode current, int data){
+
+  }
+
+  //=============================================================== FIND MIN
+
+  public int findMin(char method) {
+    int min;
+    if (method == 'r')
+      min = findMinRec(root);
+    else
+      min = findMinIter(root);
+    return min;
+  }
+
+  private int findMinRec(TreeNode current) {
+      int min = current.data;
+      if (current.left != null){
+        min = findMinRec(current.left);
+      }
+    return min;
+  }
+
+  private int findMinIter(TreeNode current) {
+    return 0;
+  }
+
+  //=============================================================== FIND MAX
+
+  public int findMax(char method) {
+    int max;
+    if (method == 'r')
+      max = findMaxRec(root);
+    else
+      max = findMaxIter(root);
+    return max;
+  }
+
+  private int findMaxRec(TreeNode current) {
+      int max = current.data;
+      if (current.right != null){
+        max = findMaxRec(current.right);
+      }
+    return max;
+  }
+
+  private int findMaxIter(TreeNode current) {
+    return 0;
+  }
+
+  //=============================================================== FIND NEXT
+  public int findNext(char method, int data) {
+    if (method == 'r') {
+      TreeNode current = findNode(root, data);
+      return findNextRec(current, current.parent);
+    }
+    return findNextIter(root);
+  }
+
+  private int findNextRec(TreeNode current, TreeNode parent) {
+    if (parent == null) 
+      return findMinRec(current.right);
+    if (parent.data > current.data && current.right == null)
+      return parent.data;
+    return current.parent.data;
+    
+  }
+
+  private int findNextIter(TreeNode current) {
+    return 0;
+  }
+  //=============================================================== SEARCH
+  public boolean findNode(int data) {
+    if (findNode(root, data) != null)
+      return true;
+    return false;
+  }
+  
+  private TreeNode findNode(TreeNode current, int searchData) {
+    if (current != null) {
+      if (current.data == searchData)
+        return current;
+      else {
+        TreeNode temp = findNode(current.right, searchData);
+        if (temp == null) {
+          temp = findNode(current.left, searchData);
+        }
+        return temp;
+      }
+    }
+    return null;
+  
+  }
+  //=============================================================== SORT
+
+  public ArrayList sort() {
+    ArrayList<Integer> sorted = new ArrayList<Integer>();
+    sort(root, sorted);
+    return sorted;
+  }
+
+  private ArrayList sort(TreeNode current, ArrayList sorted) {
+    if (current != null){
+      sort(current.left, sorted);
+      sorted.add(current.data);
+      sort(current.left, sorted);
+    }
+    return sorted;
+  }
+
+  public void print() {
+    inOrder(root);
+    System.out.println();
+    postOrder(root);
+    System.out.println();
+  }
+  private void inOrder(TreeNode current) {
+   if (current!=null){
+      inOrder(current.left);
+      System.out.print(" " + current.data + " ");
+        if (current.parent != null)
+          System.out.print("Parent: " + current.data);
+      inOrder(current.right);
+    }
+  }
+
+  private void postOrder(TreeNode current) {
+    if (current != null){
+      postOrder(current.left);
+      postOrder(current.right);
+      System.out.print(" " + current.data);
+    }
+   }
+
+}
