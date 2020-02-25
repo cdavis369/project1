@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 class BinarySearchTree {
-  TreeNode root;
+  Node root;
 
   BinarySearchTree() {
     this.root = null;
@@ -16,10 +16,10 @@ class BinarySearchTree {
       insertIter(data);
   }
 
-  private TreeNode insertRec(TreeNode current, int data) {
-    TreeNode temp;
+  private Node insertRec(Node current, int data) {
+    Node temp;
     if (current == null){
-      current = new TreeNode(data);
+      current = new Node(data);
       return current;
     }
     else if (current.data < data) {
@@ -36,28 +36,30 @@ class BinarySearchTree {
   }
 
   private void insertIter(int data) {
-    TreeNode newNode = new TreeNode(data);
+    Node newNode = new Node(data);
     if (root == null) {
       root = newNode;
       return;
     }
-    TreeNode current = root;
-    TreeNode parent = null;
+    Node current = root;
+    Node parent = null;
     while (true) {
       parent = current;
       if (current.data < data) {
         current = current.right;
         if (current == null) {
-          newNode.parent = parent;
-          parent.right = newNode;
+          current = newNode;
+          current.parent = parent;
+          parent.right = current;
           return;
         }
       }
       else {
         current = current.left;
         if (current == null) {
-          newNode.parent = parent;
-          parent.left = newNode;
+          current = newNode;
+          current.parent = parent;
+          parent.left = current;
           return;
         }
       }
@@ -68,99 +70,160 @@ class BinarySearchTree {
 
   public void delete(char method, int data) {
     if (method == 'r') 
-      root = deleteRec(root, data);
+      deleteRec(root, data);
     else
-     deleteIter(root,data);
+      deleteIter(root,data);
   }
 
-  private TreeNode deleteRec(TreeNode current, int data){
-    return current;
+  private void deleteRec(Node current, int data){
+    if (current == null)
+      return;
+    if (data < current.data)
+      deleteRec(current.left, data);
+    else if(data > current.data)
+      deleteRec(current.right, data);
+    else { //found node
+      if (current.right == null && current.left != null) {
+        current = current.left;
+        return;
+      }
+      else if (current.left == null && current.right != null) {
+        current = current.right;
+        return;
+      }
+      Node temp = findMinRec(current.right);
+      temp.left = current.left;
+      temp.right = current.right;
+      current = null;
+      
+      return;
+    }
   }
 
-  private void deleteIter(TreeNode current, int data){
+  private void deleteIter(Node current, int data){
 
   }
 
   //=============================================================== FIND MIN
 
-  public int findMin(char method) {
-    int min;
+  public Node findMin(char method) {
     if (method == 'r')
-      min = findMinRec(root);
-    else
-      min = findMinIter(root);
-    return min;
+      return findMinRec(root);
+    
+    return findMinIter(root);
   }
 
-  private int findMinRec(TreeNode current) {
-      int min = current.data;
-      if (current.left != null){
-        min = findMinRec(current.left);
-      }
-    return min;
+  private Node findMinRec(Node current) {
+      if (current.left != null)
+        findMinRec(current.left);
+    
+    return current;
   }
 
-  private int findMinIter(TreeNode current) {
-    return 0;
+  private Node findMinIter(Node current) {
+    int min = current.data;
+    while (current.left != null) {
+      if (current.data < min)
+        min = current.data;
+      current = current.left;
+    }
+    
+    return current;
   }
 
   //=============================================================== FIND MAX
 
-  public int findMax(char method) {
-    int max;
+  public Node findMax(char method) {
     if (method == 'r')
-      max = findMaxRec(root);
-    else
-      max = findMaxIter(root);
-    return max;
+      return findMaxRec(root);
+    
+    return findMaxIter(root);
   }
 
-  private int findMaxRec(TreeNode current) {
-      int max = current.data;
-      if (current.right != null){
-        max = findMaxRec(current.right);
-      }
-    return max;
+  private Node findMaxRec(Node current) {
+      if (current.right != null)
+        return findMaxRec(current.right);
+      
+      return current;
   }
 
-  private int findMaxIter(TreeNode current) {
-    return 0;
+  private Node findMaxIter(Node current) {
+    int max = current.data;
+    while (current.right != null) {
+      if (current.data > max)
+        max = current.data;
+      current = current.right;
+    }
+
+    return current;
   }
 
   //=============================================================== FIND NEXT
-  public int findNext(char method, int data) {
+  public Node findNext(char method, int data) {
+    Node current = findNode(root, data);
     if (method == 'r') {
-      TreeNode current = findNode(root, data);
-      return findNextRec(current, current.parent);
+      return findNextRec(current, data);
     }
-    return findNextIter(root);
+    return findNextIter(current, data);
   }
 
-  private int findNextRec(TreeNode current, TreeNode parent) {
-    if (parent == null) 
+  private Node findNextRec(Node current, int baseValue) {
+    if (current.data > baseValue) 
+      return current;
+    if (current.right != null && findMinRec(current.right).data > baseValue)
       return findMinRec(current.right);
-    if (parent.data > current.data && current.right == null)
-      return parent.data;
-    return current.parent.data;
     
+    return findNextRec(current.parent, baseValue);
   }
 
-  private int findNextIter(TreeNode current) {
-    return 0;
+  private Node findNextIter(Node current, int baseValue) {
+    if (current.right != null)
+      return findMinIter(current.right);
+    while (current.data < baseValue) 
+        current = current.parent;
+    return current;
   }
+
+  //=============================================================== FIND PREV
+  public Node findPrev(char method, int data) {
+    if (method == 'r') {
+      Node current = findNode(root, data);
+      return findPrevRec(current, data);
+    }
+    return findPrevIter(root, data);
+  }
+
+  private Node findPrevRec(Node current, int baseValue) {
+    if (current.data < baseValue) 
+      return current;
+    if (current.left != null && findMaxRec(current.left).data > baseValue)
+      return findMaxRec(current.left);
+
+    return findPrevRec(current.parent, baseValue);
+  }
+
+  private Node findPrevIter(Node current, int baseValue) {
+    if (current.left != null)
+      return findMaxIter(current.left);
+    while (current.data > basevalue){
+      current = current.parent;
+    }
+    return current;
+  }
+  
   //=============================================================== SEARCH
   public boolean findNode(int data) {
-    if (findNode(root, data) != null)
+    if (findNode(root, root.data) != null)
       return true;
     return false;
   }
   
-  private TreeNode findNode(TreeNode current, int searchData) {
+  private Node findNode(Node current, int searchData) {
     if (current != null) {
       if (current.data == searchData)
         return current;
       else {
-        TreeNode temp = findNode(current.right, searchData);
+        Node temp = findNode(current.right, searchData);
         if (temp == null) {
           temp = findNode(current.left, searchData);
         }
@@ -168,17 +231,16 @@ class BinarySearchTree {
       }
     }
     return null;
-  
   }
+  
   //=============================================================== SORT
-
   public ArrayList sort() {
     ArrayList<Integer> sorted = new ArrayList<Integer>();
     sort(root, sorted);
     return sorted;
   }
 
-  private ArrayList sort(TreeNode current, ArrayList sorted) {
+  private ArrayList sort(Node current, ArrayList sorted) {
     if (current != null){
       sort(current.left, sorted);
       sorted.add(current.data);
@@ -187,28 +249,85 @@ class BinarySearchTree {
     return sorted;
   }
 
+  //=============================================================== PRINT
   public void print() {
     inOrder(root);
     System.out.println();
-    postOrder(root);
-    System.out.println();
+    //postOrder(root);
+    //System.out.println();
   }
-  private void inOrder(TreeNode current) {
+  
+  private void inOrder(Node current) {
    if (current!=null){
       inOrder(current.left);
       System.out.print(" " + current.data + " ");
-        if (current.parent != null)
-          System.out.print("Parent: " + current.data);
       inOrder(current.right);
     }
   }
 
-  private void postOrder(TreeNode current) {
+  private void postOrder(Node current) {
     if (current != null){
       postOrder(current.left);
       postOrder(current.right);
       System.out.print(" " + current.data);
     }
    }
+  }
 
+
+
+class Main {
+  public static void main(String[] args) {
+    BinarySearchTree b = new BinarySearchTree();
+    int[] treeList = {10,30,5,8,2,35,15,4,14};
+    for (int i = 0; i < treeList.length; i++)
+      b.insert('i',treeList[i]);
+    System.out.println(b.findNext('r',4).data);
+    System.out.println(b.findPrev('r',15).data);
+    /*
+    System.out.println(b.findNode(2));
+    System.out.println(b.findNode(40));
+    System.out.println(b.findNext('r', 10));
+    System.out.println(b.findMin('r'));
+    System.out.println(b.findMax('r'));
+    */
+    b.print();
+    b.delete('r',15);
+    b.print();
+  }
+  
+  //=============================================================== SORTED ARRAY
+  private static int[] getSortedArray(int n) {
+    int[] sorted = new int[n];
+    int j = 0;
+    for(int i = n; i > 0; i--) {
+      sorted[j] = i;
+      j++;
+    }
+    return sorted;
+  }
+
+  //=============================================================== RANDOM ARRAY
+  private static int[] getRandomArray(int n) {
+    Random randomIndex = new Random();
+    int[] randomArr = new int[n];
+    for (int i = 0; i < n; i ++) {
+      if (i == 0) 
+        randomArr[i] = 2;
+      else if (i % 2 == 0) 
+        randomArr[i] = i * 2;
+      else if (i % 3 == 0)
+        randomArr[i] = i * 3;
+      else
+        randomArr[i] = i;
+    }
+    int temp;
+    for (int i = 0; i < n; i ++) {
+      int index = randomIndex.nextInt(n);
+      temp = randomArr[index];
+      randomArr[index] = randomArr[i];
+      randomArr[i] = temp;
+    }
+    return randomArr;
+  }
 }
